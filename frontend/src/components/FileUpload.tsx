@@ -67,9 +67,9 @@ const FileUpload: React.FC<FileUploadProps> = ({ onDataUpload }) => {
   return (
     <div className="w-full max-w-md mx-auto">
       <div
-        className={`border-2 border-dashed rounded-lg p-8 text-center transition-all duration-300 ${
-          dragActive 
-            ? 'border-blue-500 bg-blue-50 shadow-lg' 
+        className={`border-2 border-dashed rounded-lg py-16 px-8 text-center transition-all duration-300 ${
+          dragActive
+            ? 'border-blue-500 bg-blue-50 shadow-lg'
             : 'border-gray-300 hover:border-blue-400 hover:bg-blue-25 hover:shadow-md'
         }`}
         onDragEnter={handleDrag}
@@ -84,11 +84,11 @@ const FileUpload: React.FC<FileUploadProps> = ({ onDataUpload }) => {
           </div>
         ) : (
           <div className="flex flex-col items-center">
-            <svg className="h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="h-12 w-12 text-gray-400 mb-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
             </svg>
-            <p className="text-lg font-medium text-gray-700 mb-2">Upload your CSV file</p>
-            <p className="text-sm text-gray-500">
+            <p className="text-lg font-medium text-gray-700 mb-4">Upload your CSV file</p>
+            <p className="text-sm text-gray-500 mb-6">
               Drag and drop your customer feedback CSV here
             </p>
             <input
