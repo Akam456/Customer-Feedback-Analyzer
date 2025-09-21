@@ -4,6 +4,11 @@ const axios = require('axios');
 const MODEL_CONFIG = {
   endpoints: [
     {
+      name: 'huggingface',
+      url: 'https://api-inference.huggingface.co/models/meta-llama/Llama-3.2-3B-Instruct',
+      type: 'huggingface'
+    },
+    {
       name: 'ollama',
       url: process.env.OLLAMA_URL || 'http://localhost:11434/api/generate',
       type: 'ollama'
@@ -22,7 +27,50 @@ async function callGPTOSS(message, dataContext, cleanedData) {
     try {
       console.log(`Trying ${endpoint.name} endpoint...`);
 
-      if (endpoint.type === 'ollama') {
+      if (endpoint.type === 'huggingface') {
+        const response = await axios.post(endpoint.url, {
+          inputs: `You are a customer feedback analyst. Analyze the following data and answer the user's question concisely and helpfully.
+
+DATA ANALYSIS:
+${dataContext}
+
+USER QUESTION: ${message}
+
+RESPONSE:`,
+          parameters: {
+            max_new_tokens: 500,
+            temperature: 0.7,
+            top_p: 0.9,
+            do_sample: true
+          }
+        }, {
+          headers: {
+            'Content-Type': 'application/json',
+            ...(process.env.HUGGINGFACE_API_KEY && {
+              'Authorization': `Bearer ${process.env.HUGGINGFACE_API_KEY}`
+            })
+          },
+          timeout: 60000
+        });
+
+        // Handle model loading
+        if (response.data && response.data.error && response.data.error.includes('loading')) {
+          console.log('Hugging Face model is loading, trying again in a moment...');
+          await new Promise(resolve => setTimeout(resolve, 3000));
+          continue;
+        }
+
+        if (response.data && response.data[0] && response.data[0].generated_text) {
+          // Extract just the response part after "RESPONSE:"
+          const fullText = response.data[0].generated_text;
+          const responseStart = fullText.indexOf('RESPONSE:');
+          if (responseStart !== -1) {
+            return fullText.substring(responseStart + 'RESPONSE:'.length).trim();
+          }
+          return fullText.trim();
+        }
+
+      } else if (endpoint.type === 'ollama') {
         const response = await axios.post(endpoint.url, {
           model: 'llama3.2:latest',
           prompt: `You are a customer feedback analyst. Analyze the data and answer concisely.\n\n${dataContext}`,
