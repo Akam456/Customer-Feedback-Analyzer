@@ -28,46 +28,40 @@ async function callGPTOSS(message, dataContext, cleanedData) {
       console.log(`Trying ${endpoint.name} endpoint...`);
 
       if (endpoint.type === 'huggingface') {
+        const prompt = `You are a helpful customer feedback analyst. Based on the following customer feedback data, please answer the user's question:
+
+${dataContext.substring(0, 1000)}
+
+Question: ${message}
+Answer:`;
+
         const response = await axios.post(endpoint.url, {
-          inputs: `You are a customer feedback analyst. Analyze the following data and answer the user's question concisely and helpfully.
-
-DATA ANALYSIS:
-${dataContext}
-
-USER QUESTION: ${message}
-
-RESPONSE:`,
+          inputs: prompt,
           parameters: {
-            max_new_tokens: 500,
+            max_new_tokens: 300,
             temperature: 0.7,
-            top_p: 0.9,
-            do_sample: true
+            return_full_text: false
           }
         }, {
           headers: {
-            'Content-Type': 'application/json',
-            ...(process.env.HUGGINGFACE_API_KEY && {
-              'Authorization': `Bearer ${process.env.HUGGINGFACE_API_KEY}`
-            })
+            'Content-Type': 'application/json'
           },
-          timeout: 60000
+          timeout: 30000
         });
 
+        console.log('HF Response:', response.data);
+
         // Handle model loading
-        if (response.data && response.data.error && response.data.error.includes('loading')) {
-          console.log('Hugging Face model is loading, trying again in a moment...');
-          await new Promise(resolve => setTimeout(resolve, 3000));
-          continue;
+        if (response.data && response.data.error) {
+          if (response.data.error.includes('loading')) {
+            console.log('Hugging Face model is loading...');
+            throw new Error('Model loading, will retry');
+          }
+          throw new Error(`HF API Error: ${response.data.error}`);
         }
 
         if (response.data && response.data[0] && response.data[0].generated_text) {
-          // Extract just the response part after "RESPONSE:"
-          const fullText = response.data[0].generated_text;
-          const responseStart = fullText.indexOf('RESPONSE:');
-          if (responseStart !== -1) {
-            return fullText.substring(responseStart + 'RESPONSE:'.length).trim();
-          }
-          return fullText.trim();
+          return response.data[0].generated_text.trim();
         }
 
       } else if (endpoint.type === 'ollama') {
@@ -114,6 +108,8 @@ RESPONSE:`,
       }
     } catch (error) {
       console.log(`${endpoint.name} failed:`, error.message);
+      console.log(`${endpoint.name} error details:`, error.response?.data);
+      console.log(`${endpoint.name} status:`, error.response?.status);
       continue;
     }
   }
@@ -436,11 +432,14 @@ ANSWER:`;
 
   } catch (error) {
     console.error('Chat API error:', error);
-    console.error('Request body:', req.body);
+    console.error('Error message:', error.message);
+    console.error('Error stack:', error.stack);
+    console.error('Request body keys:', Object.keys(req.body));
+    console.error('Data length:', req.body.data?.length);
     res.status(500).json({
       error: 'Failed to process chat request',
       details: error.message,
-      stack: error.stack
+      timestamp: new Date().toISOString()
     });
   }
 }
