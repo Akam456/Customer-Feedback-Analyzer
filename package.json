@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "description": "A full-stack web application that analyzes customer feedback from CSV files using AI-powered insights",
   "scripts": {
-    "build": "cd frontend && npm run build",
-    "dev": "cd frontend && npm start"
+    "build": "cd frontend && npm install && npm run build",
+    "dev": "cd frontend && npm start",
+    "install-frontend": "cd frontend && npm install"
   },
   "dependencies": {
     "axios": "^1.11.0",
