@@ -30,7 +30,7 @@ async function callGPTOSS(message, dataContext, cleanedData) {
       if (endpoint.type === 'huggingface') {
         const prompt = `You are a helpful customer feedback analyst. Based on the following customer feedback data, please answer the user's question:
 
-${dataContext.substring(0, 1000)}
+${dataContext.substring(0, 4000)}
 
 Question: ${message}
 Answer:`;
@@ -43,7 +43,7 @@ Answer:`;
           body: JSON.stringify({
             inputs: prompt,
             parameters: {
-              max_new_tokens: 300,
+              max_new_tokens: 500,
               temperature: 0.7,
               return_full_text: false
             }
