@@ -67,7 +67,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onDataUpload }) => {
   return (
     <div className="w-full max-w-md mx-auto">
       <div
-        className={`border-2 border-solid rounded-lg py-20 px-8 min-h-80 flex items-center justify-center text-center transition-all duration-300 ${
+        className={`border-2 rounded-lg py-20 px-8 min-h-80 flex items-center justify-center text-center transition-all duration-300 ${
           dragActive
             ? 'border-blue-500 bg-blue-50 shadow-lg'
             : 'border-gray-300 hover:border-blue-400 hover:bg-blue-25 hover:shadow-md'
