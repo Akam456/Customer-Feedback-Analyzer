@@ -1,4 +1,4 @@
-const axios = require('axios');
+// Use built-in fetch instead of axios to avoid dependency issues
 
 // Configuration for AI model
 const MODEL_CONFIG = {
@@ -35,81 +35,90 @@ ${dataContext.substring(0, 1000)}
 Question: ${message}
 Answer:`;
 
-        const response = await axios.post(endpoint.url, {
-          inputs: prompt,
-          parameters: {
-            max_new_tokens: 300,
-            temperature: 0.7,
-            return_full_text: false
-          }
-        }, {
+        const response = await fetch(endpoint.url, {
+          method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
-          timeout: 30000
+          body: JSON.stringify({
+            inputs: prompt,
+            parameters: {
+              max_new_tokens: 300,
+              temperature: 0.7,
+              return_full_text: false
+            }
+          })
         });
 
-        console.log('HF Response:', response.data);
+        const data = await response.json();
+
+        console.log('HF Response:', data);
 
         // Handle model loading
-        if (response.data && response.data.error) {
-          if (response.data.error.includes('loading')) {
+        if (data && data.error) {
+          if (data.error.includes('loading')) {
             console.log('Hugging Face model is loading...');
             throw new Error('Model loading, will retry');
           }
-          throw new Error(`HF API Error: ${response.data.error}`);
+          throw new Error(`HF API Error: ${data.error}`);
         }
 
-        if (response.data && response.data[0] && response.data[0].generated_text) {
-          return response.data[0].generated_text.trim();
+        if (data && data[0] && data[0].generated_text) {
+          return data[0].generated_text.trim();
         }
 
       } else if (endpoint.type === 'ollama') {
-        const response = await axios.post(endpoint.url, {
-          model: 'llama3.2:latest',
-          prompt: `You are a customer feedback analyst. Analyze the data and answer concisely.\n\n${dataContext}`,
-          stream: false,
-          options: {
-            temperature: 0.3,
-            num_ctx: 2048,
-            num_predict: 400,
-            top_k: 10,
-            top_p: 0.5
-          }
-        }, {
-          timeout: 30000
-        });
-
-        return response.data.response;
-
-      } else if (endpoint.type === 'openai-compatible') {
-        const response = await axios.post(endpoint.url, {
-          model: 'llama3.2:latest',
-          messages: [
-            {
-              role: "system",
-              content: "You are a customer feedback analyst. Provide clear, actionable insights based on the data provided. Be conversational and helpful."
-            },
-            {
-              role: "user",
-              content: dataContext
-            }
-          ],
-          max_tokens: 1000,
-          temperature: 0.7
-        }, {
+        const response = await fetch(endpoint.url, {
+          method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
-          timeout: 30000
+          body: JSON.stringify({
+            model: 'llama3.2:latest',
+            prompt: `You are a customer feedback analyst. Analyze the data and answer concisely.\n\n${dataContext}`,
+            stream: false,
+            options: {
+              temperature: 0.3,
+              num_ctx: 2048,
+              num_predict: 400,
+              top_k: 10,
+              top_p: 0.5
+            }
+          })
         });
 
-        return response.data.choices[0].message.content;
+        const data = await response.json();
+        return data.response;
+
+      } else if (endpoint.type === 'openai-compatible') {
+        const response = await fetch(endpoint.url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            model: 'llama3.2:latest',
+            messages: [
+              {
+                role: "system",
+                content: "You are a customer feedback analyst. Provide clear, actionable insights based on the data provided. Be conversational and helpful."
+              },
+              {
+                role: "user",
+                content: dataContext
+              }
+            ],
+            max_tokens: 1000,
+            temperature: 0.7
+          })
+        });
+
+        const data = await response.json();
+        return data.choices[0].message.content;
       }
     } catch (error) {
       console.log(`${endpoint.name} failed:`, error.message);
-      console.log(`${endpoint.name} error details:`, error.response?.data);
-      console.log(`${endpoint.name} status:`, error.response?.status);
+      console.log(`${endpoint.name} error:`, error);
       continue;
     }
   }
