@@ -69,7 +69,9 @@ code {
 .border-solid { border-style: solid; }
 .border-gray-300 { border-color: #d1d5db; }
 .min-h-80 { min-height: 20rem; }
+.min-h-48 { min-height: 12rem; }
 .py-20 { padding-top: 5rem; padding-bottom: 5rem; }
+.py-12 { padding-top: 3rem; padding-bottom: 3rem; }
 .border-gray-200 { border-color: #e5e7eb; }
 .border-blue-400 { border-color: #60a5fa; }
 .border-blue-500 { border-color: #3b82f6; }
