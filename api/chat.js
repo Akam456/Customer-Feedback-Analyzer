@@ -17,7 +17,7 @@ const MODEL_CONFIG = {
 };
 
 // Function to call AI model with fallback
-async function callGPTOSS(message, dataContext) {
+async function callGPTOSS(message, dataContext, cleanedData) {
   for (const endpoint of MODEL_CONFIG.endpoints) {
     try {
       console.log(`Trying ${endpoint.name} endpoint...`);
@@ -70,10 +70,8 @@ async function callGPTOSS(message, dataContext) {
     }
   }
 
-  // Fallback analysis using the data
-  const cleanedData = global.cleanedData || [];
-
-  if (cleanedData.length === 0) {
+  // Fallback analysis using the data passed to the function
+  if (!cleanedData || cleanedData.length === 0) {
     return "No data available for analysis. Please upload a CSV file first.";
   }
 
@@ -374,7 +372,7 @@ ANSWER:`;
     if (chartData) {
       response = `Here's your ${chartData.title.toLowerCase()}:`;
     } else {
-      response = await callGPTOSS(message, dataContext);
+      response = await callGPTOSS(message, dataContext, cleanedData);
     }
 
     const responseObj = {
@@ -390,9 +388,11 @@ ANSWER:`;
 
   } catch (error) {
     console.error('Chat API error:', error);
+    console.error('Request body:', req.body);
     res.status(500).json({
       error: 'Failed to process chat request',
-      details: error.message
+      details: error.message,
+      stack: error.stack
     });
   }
 }
