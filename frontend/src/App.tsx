@@ -78,7 +78,7 @@ function App() {
                   <DataPreview data={uploadedData} totalRows={totalRows} />
                 </div>
                 <div className="lg:w-2/3">
-                  <ChatInterface />
+                  <ChatInterface uploadedData={uploadedData} />
                 </div>
               </div>
             </div>

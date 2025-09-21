@@ -264,17 +264,18 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { message } = req.body;
+    const { message, data } = req.body;
 
     if (!message) {
       return res.status(400).json({ error: 'Message is required' });
     }
 
-    const cleanedData = global.cleanedData || [];
+    // Use data from request body if available, fallback to global
+    const cleanedData = data || global.cleanedData || [];
 
     if (cleanedData.length === 0) {
       return res.json({
-        response: "No data has been uploaded yet. Please upload a CSV file first."
+        response: "No data has been uploaded yet. Please upload a CSV file first to start analyzing your customer feedback."
       });
     }
 

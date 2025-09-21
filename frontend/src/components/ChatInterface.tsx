@@ -2,6 +2,13 @@ import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import ChatMessage from './ChatMessage';
 
+interface CleanedData {
+  'Response Date': string;
+  'Brand': string;
+  'Digital CSAT': string;
+  'Feedback': string;
+}
+
 interface Message {
   id: string;
   text: string;
@@ -14,7 +21,11 @@ interface Message {
   };
 }
 
-const ChatInterface: React.FC = () => {
+interface ChatInterfaceProps {
+  uploadedData: CleanedData[];
+}
+
+const ChatInterface: React.FC<ChatInterfaceProps> = ({ uploadedData }) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -49,7 +60,8 @@ const ChatInterface: React.FC = () => {
 
     try {
       const response = await axios.post('/api/chat', {
-        message: inputText
+        message: inputText,
+        data: uploadedData
       });
 
       const aiMessage: Message = {
